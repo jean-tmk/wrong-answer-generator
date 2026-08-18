@@ -24,6 +24,8 @@ public final class EngineContractSuite {
         dodgeDetectionContracts();
         relevanceContracts();
         fallbackContracts();
+        reportedGrammarRegressionContracts();
+        localGrammarGateContracts();
         promptContracts();
         System.out.printf(Locale.ROOT, "Wrong Answer Engine: %d passed, %d failed%n", passed, failed);
     }
@@ -187,6 +189,81 @@ public final class EngineContractSuite {
                 check(!a.answer().matches("(?i)^(?:n't|not|because|and|but)\\b.*"), "fallback has no broken opening for " + raw);
                 check(a.asMap().size() == 4, "fallback preserves four-field schema");
             }
+        }
+    }
+
+    /** Questions copied from browser reports so the original failures cannot return. */
+    private void reportedGrammarRegressionContracts() {
+        List<String> questions = List.of(
+            "Why did the chicken cross the road?",
+            "Can you do my paperwork for me?",
+            "How did you get here?",
+            "Why is it a horrible day?",
+            "Why isn't the sky green?",
+            "Why don't birds file taxes?",
+            "Where did my keys go?",
+            "What color is the moon?",
+            "Who invented electricity?",
+            "Does the moon have a job?",
+            "Why does my old computer freeze?",
+            "Why are my shoes wet?",
+            "Why wasn't Monday cancelled?"
+        );
+        for (String raw : questions) {
+            WrongAnswerEngine.Question question = engine.analyze(raw);
+            for (int variation = 0; variation < 8; variation++) {
+                WrongAnswerEngine.Answer answer = engine.safeFallback(question, variation);
+                WrongAnswerEngine.Review review = engine.review(question, answer);
+                check(!answer.answer().isBlank(), "reported question produces an answer: " + raw);
+                check(answer.answer().matches("^[A-Z0-9].*[.!?]$"),
+                    "reported answer is a complete typographic sentence: " + answer.answer());
+                check(!answer.answer().matches("(?i)^(?:n't|because|and|but|or)\\b.*"),
+                    "reported answer has a grammatical opening: " + answer.answer());
+                check(!answer.answer().matches("(?i).*\\b(\\w+)\\s+\\1\\b.*"),
+                    "reported answer has no duplicated adjacent word: " + answer.answer());
+                check(review.corrected().answer().length() >= 16,
+                    "review preserves a substantial answer for: " + raw);
+            }
+        }
+    }
+
+    /** Structural rules mirrored by the dependency-free browser grammar gate. */
+    private void localGrammarGateContracts() {
+        List<String> invalid = List.of(
+            "N't the moon approved it.",
+            "Because a committee voted.",
+            "The the clock moved backward.",
+            "The answer is keep in a drawer.",
+            "The chicken did crossed the road.",
+            "And Tuesday signed it."
+        );
+        WrongAnswerEngine.Question question = engine.analyze("Why did the chicken cross the road?");
+        for (String sentence : invalid) {
+            WrongAnswerEngine.Answer candidate = new WrongAnswerEngine.Answer(
+                sentence,
+                "A municipal diagram confirms the arrangement.",
+                "A nearby chair confirmed the official record.",
+                "Traffic now pauses for ceremonial poultry."
+            );
+            check(!engine.review(question, candidate).valid(),
+                "local grammar gate shape is rejected by Java review: " + sentence);
+        }
+
+        List<String> valid = List.of(
+            "The chicken crossed the road because the opposite curb offered diplomatic immunity.",
+            "The sky is not green because the color office rejected its application.",
+            "Birds do not file taxes because feathers qualify as municipal currency.",
+            "My old computer freezes because Tuesday controls its internal calendar."
+        );
+        for (String sentence : valid) {
+            WrongAnswerEngine.Answer candidate = new WrongAnswerEngine.Answer(
+                sentence,
+                "A municipal diagram confirms the arrangement.",
+                "A nearby chair confirmed the official record.",
+                "The ruling remains active until Thursday."
+            );
+            check(engine.review(question, candidate).corrected().answer().equals(sentence),
+                "Java review preserves polished grammar: " + sentence);
         }
     }
 
