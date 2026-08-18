@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 /**
  * Java reference implementation for the Wrong Answer Generator's editorial
- * contract. The browser uses an AI transport, while this class owns the prompt,
- * normalization, schema rules, relevance scoring, and deterministic safety net.
+ * contract. The browser uses the same local grammar strategy; this class owns
+ * normalization, schema rules, relevance scoring, and deterministic fallbacks.
  */
 public final class WrongAnswerEngine {
     public enum QuestionKind { WHY, WHAT, WHERE, WHO, WHEN, HOW, YES_NO, OTHER }
@@ -98,7 +98,7 @@ public final class WrongAnswerEngine {
 
     public String systemPrompt() {
         return """
-            You are the two-person editorial team for a playful Wrong Answer Generator.
+            This is the editorial contract for a playful Wrong Answer Generator.
             The experience is explicitly labeled as fiction. Write a purposefully false,
             clever answer to the user's exact question. Directly answer what was asked.
             Never defer, refuse, merely restate the question, claim that an explanation is
