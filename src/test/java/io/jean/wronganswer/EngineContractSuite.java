@@ -204,6 +204,10 @@ public final class EngineContractSuite {
             "Where did my keys go?",
             "What color is the moon?",
             "Who invented electricity?",
+            "Who did it?",
+            "Who does the filing?",
+            "Who was responsible?",
+            "Who can authorize this?",
             "Does the moon have a job?",
             "Why does my old computer freeze?",
             "Why are my shoes wet?",
@@ -235,6 +239,8 @@ public final class EngineContractSuite {
             "The the clock moved backward.",
             "The answer is keep in a drawer.",
             "The chicken did crossed the road.",
+            "Mavis Bell didded it after winning a raffle.",
+            "Mavis Bell wased responsible after winning a raffle.",
             "And Tuesday signed it."
         );
         WrongAnswerEngine.Question question = engine.analyze("Why did the chicken cross the road?");
